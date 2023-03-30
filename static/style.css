@@ -1,0 +1,39 @@
+html,
+body {
+    /* overflow: hidden; */
+    width: 100%;
+    height: 100%;
+}
+
+.divbg {
+    padding: 5px;
+    background-color: lightgray;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.message_logs {
+    white-space: pre-line;
+    height: 50vh;
+    overflow-y: auto;
+    flex: auto;
+    border: solid darkgray 1px;
+    padding: 2.5%;
+}
+
+li {
+    list-style-type: none;
+}
+
+.input_area {
+    bottom: 0;
+    height: 10%;
+}
+
+.w95 {
+    width: 95%;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+}

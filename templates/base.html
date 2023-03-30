@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>GPTtool {% block title %} {% endblock %}</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css">
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">🥰</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Chat</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Constructing...</a>
+        </li>
+      </ul>
+      <button class="btn btn-primary mx-2" id="api-key-retrieve">查看API KEY</button>
+      <button class="btn btn-primary mx-2" id="api-key-update">上传API KEY</button>
+    </div>
+  </nav><br>
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- 左侧空白 -->
+      <div class="col-md-2"></div>
+      <!-- 居中部分 -->
+      <div class="col-md-8">
+      {% block content %}
+      {% endblock %}
+      </div>
+      <!-- 右侧空白 -->
+      <div class="col-md-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $("#api-key-update").click(() => {    
+      let api_key = window.prompt("输入新的API KEY");
+      let data = {
+        "api_key": api_key
+      }
+      fetch(`${window.location.href}update-api-key`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        if (data["update_status"] != "succeed") {
+          alert("格式错误，请重新输入API KEY")
+        }
+      })
+      .catch(error => console.error(error));
+    })
+
+    $("#api-key-retrieve").click(() => {
+      fetch(`${window.location.href}retrieve-api-key`, {
+        method: "GET"
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        prompt("当前的API KEY为", `${data["api_key"]}`);
+      })
+    })
+  </script>
+
+</body>

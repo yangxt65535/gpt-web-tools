@@ -1,2 +1,4 @@
 # gpt-web-tools
-A Flask project to play with OpenAI API
+OpenAI API x Flask
+
+做了一个网页聊天bot

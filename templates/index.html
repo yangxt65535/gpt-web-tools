@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Home Page{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<!-- 标题 -->
+<h1>聊天Bot</h1>
+<!-- 配置 -->
+<div class="divbg">
+  <div class=" pt-2 w95">
+    <textarea rows="4" id="setting_input" placeholder="请在此输入配置" autocomplete="off" style="width:100%;"></textarea>
+    <button class="btn btn-primary mx-1 mb-2" id="setting_config_btn">显示配置</button>
+    <button class="btn btn-primary mx-1 mb-2" id="reset_btn" >清空消息</button>
+    <button class="btn btn-primary mx-1 mb-2" id="save_btn" >保存消息</button>
+  </div>
+</div>
+<!-- 文本输入 -->
+
+<!-- 消息记录 -->
+<div class="divbg py-2" style="flex:auto; overflow-y: auto;">
+  <ul class="message_logs py-0 my-0 w95">
+  </ul>
+  <div class="input_area w95">
+    <div style="display: flex;">
+      <input id="prompt_input" placeholder="请输入..." autocomplete="off" style="flex: auto;"> 
+      <button id="prompt_submit" class="btn btn-primary" style="width: max-content;">提交</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 消息记录
+var message_log = [];
+
+// 显示、隐藏文本框
+$("#setting_config_btn").click(() => {
+  let setting = $("#setting_input")[0];
+  let show_btn = $("#setting_config_btn")[0];
+  if (setting.style.display == "none") {
+    setting.style.display = "";
+    show_btn.innerHTML = "隐藏配置";
+  }
+  else {
+    setting.style.display = "none";
+    show_btn.innerHTML = "显示配置";
+  }
+})
+
+// 发送请求功能
+$("#prompt_submit").click(() => {
+  // 根据消息记录创建请求，取最后的九个条记录
+  gen_message = (setting, message_log) => {
+    let messages = [];
+    messages.push({
+      "role": "system",
+      "content": setting
+    });
+    message_log.slice(-9).forEach(e => {
+      messages.push(e);
+    });
+    return messages;
+  }
+
+  // 获取数据
+  let setting = $("#setting_input")[0].value;
+  let prompt = $("#prompt_input")[0].value;
+
+  $("#prompt_input")[0].value = "";
+  // 添加用户消息记录
+  $(".message_logs")[0].innerHTML += `<li>你：${prompt}</li>\n`
+  let new_message = {
+    "role": "user",
+    "content": prompt
+  };
+  message_log.push(new_message);
+  // 创建请求并处理回复
+  fetch(`${window.location.href}chat`, {
+    method: "POST",
+    headers: {'Content-Type': "application/json"},
+    body: JSON.stringify({"messages": gen_message(setting, message_log)})
+  })
+  .then(response => response.json())
+  .then(data => {
+    let new_message = data["message"];
+    // 添加AI消息记录
+    message_log.push(new_message);
+    $(".message_logs")[0].innerHTML += `<li>AI：${new_message["content"]}</li>\n`
+    })
+    .catch(error => {
+    $(".message_logs")[0].innerHTML += `<li style="color:red;">AI：发生错误</li>\n`
+  })
+})
+
+// 清空消息记录功能
+$("#reset_btn").click(() => {
+  message_log = [];
+  $("#prompt_input")[0].value = "";
+  console.log($(".message_logs")[0].innerHTML);
+  $(".message_logs")[0].innerHTML = "";
+})
+
+// 保存消息记录功能
+$("#save_btn").click(() => {
+  var messages = "";
+  message_log.forEach(e => {
+  if (e["role"] == "user") {
+    messages += "你：" + e["content"] + "\n\n";
+  }
+  else if (e["role"] == "assistant") {
+    messages += "AI：" + e["content"] + "\n\n";
+  }
+  })
+
+  const blob = new Blob([messages], { type: 'text/plain' });
+  const anchor = document.createElement('a');
+  anchor.href = URL.createObjectURL(blob);
+  anchor.download = `log-${Date.now()}.txt`;
+  document.body.appendChild(anchor);
+  anchor.click();
+})
+
+
+</script>
+{% endblock %}
