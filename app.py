@@ -1,10 +1,11 @@
 import openai
 from flask import Flask, render_template, request, jsonify
 
-import os, re, json, requests
+import os, re, json
 
 app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI()
 
 @app.route("/")
 def route_chat():
@@ -33,31 +34,35 @@ def route_chat_work():
     data = json.loads(request.data.decode("utf-8"))
     print(data)
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {openai.api_key}",
-    }
     body = {
         "model": "gpt-3.5-turbo",
         "messages": data["messages"],
         "stream": True,  # 启用流式API
     }
-    response = {}
-    res = requests.post(
-        "https://api.openai.com/v1/chat/completions",
-        headers=headers,
-        json=body,
-        stream=True,  # 同样需要启用流式API
-    )
 
-    cstr = res.content.decode("utf-8")
-    res = re.findall(r'\{"content":"(.*?)"\}', cstr)
-    response["message"] = {
-        "role": "assistant",
-        "content": "".join(res)
-    }
-    print(response)
+    for chunk in client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": "Generate 10 names for a chinese cuisine cooking book",
+            },
+        ],
+        stream=True
+    ):
+        content = chunk.choices[0].delta.content
+        if content is not None:
+            print(content, end="")
+
+    return "1"
+    # cstr = res.content.decode("utf-8")
+    # res = re.findall(r'\{"content":"(.*?)"\}', cstr)
+    # response["message"] = {
+    #     "role": "assistant",
+    #     "content": "".join(res)
+    # }
+    # print(response)
    
-    return jsonify(response)
+    # return jsonify(response)
 
 
